@@ -1,0 +1,19 @@
+{
+	"name": "t1adf-mishchuk",
+	"properties": {
+		"globalConfigurations": {
+			"mountedConfiguration": [
+				{
+					"workspaceId": "704b2ba5-843b-4b6c-8eb1-68a984d57504",
+					"artifactId": "377948aa-a8a2-45ae-9b92-64e7378a3850"
+				}
+			]
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "46c1d72e-a0dc-4127-8183-9a1af984b951",
+		"tenantId": "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+	}
+}

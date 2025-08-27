@@ -1,0 +1,119 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "newCustomersTXT"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "incomeclasses"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "split1"
+				},
+				{
+					"name": "lookup1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          FirstName as string,",
+				"          MiddleInitial as string,",
+				"          LastName as string,",
+				"          BirthDate as string,",
+				"          MaritalStatus as string,",
+				"          Gender as string,",
+				"          EmailAddress as string,",
+				"          YearlyIncome as double,",
+				"          TotalChildren as string,",
+				"          NumberChildrenAtHome as string,",
+				"          Education as string,",
+				"          Occupation as string,",
+				"          HouseOwnerFlag as string,",
+				"          NumberCarsOwned as string,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          City as string,",
+				"          State as string,",
+				"          ZIP as string,",
+				"          Phone as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> newCustomersTXT",
+				"source(output(",
+				"          class as string,",
+				"          income_from as double,",
+				"          income_to as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select   class , income_from, income_to from [dbo].[HighIncomeClasses]',",
+				"     format: 'query') ~> incomeclasses",
+				"newCustomersTXT split(YearlyIncome>=10000,",
+				"     disjoint: false) ~> split1@(bigger10000)",
+				"split1@bigger10000, incomeclasses lookup(YearlyIncome >= income_from",
+				"     && YearlyIncome <= income_to,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'both')~> lookup1",
+				"lookup1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          FirstName as string,",
+				"          MiddleInitial as string,",
+				"          LastName as string,",
+				"          BirthDate as timestamp,",
+				"          MaritalStatus as string,",
+				"          Gender as string,",
+				"          EmailAddress as string,",
+				"          YearlyIncome as decimal(19,4),",
+				"          TotalChildren as integer,",
+				"          NumberChildrenAtHome as integer,",
+				"          Education as string,",
+				"          Occupation as string,",
+				"          HouseOwnerFlag as boolean,",
+				"          NumberCarsOwned as integer,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          City as string,",
+				"          State as string,",
+				"          ZIP as string,",
+				"          Phone as string,",
+				"          dttm as timestamp,",
+				"          class as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

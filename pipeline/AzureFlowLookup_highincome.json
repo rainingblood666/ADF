@@ -1,0 +1,99 @@
+{
+	"name": "AzureFlowLookup_highincome",
+	"properties": {
+		"activities": [
+			{
+				"name": "Create or Truncate Table HighIncomeCustomers",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase2",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "IF NOT EXISTS (SELECT * FROM AdventureWorks.sys.tables WHERE type ='U' and name = 'HighIncomeCustomers')\nCREATE TABLE dbo.HighIncomeCustomers \n(\n[FirstName] nvarchar(50),\n[MiddleInitial] nchar(1),\n[LastName] nvarchar(50),\n[BirthDate] datetime,\n[MaritalStatus] nchar(1),\n[Gender] nchar(1),\n[EmailAddress] nvarchar(50),\n[YearlyIncome] money,\n[TotalChildren] tinyint,\n[NumberChildrenAtHome] tinyint,\n[Education] nvarchar(50),\n[Occupation] nvarchar(50),\n[HouseOwnerFlag] bit,\n[NumberCarsOwned] tinyint,\n[AddressLine1] nvarchar(60),\n[AddressLine2] nvarchar(60),\n[City] nvarchar(30),\n[State] nvarchar(3),\n[ZIP] nvarchar(10),\n[Phone] nvarchar(50),\nclass char(1),\ndttm datetime2 default getdate()\n)\nELSE\nTRUNCATE TABLE AdventureWorks.dbo.HighIncomeCustomers "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Create Table HighIncomeClasses",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase2",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "IF NOT EXISTS (SELECT * FROM AdventureWorks.sys.tables WHERE type ='U' and name = 'HighIncomeClasses')\nBEGIN\n\nCREATE TABLE [dbo].[HighIncomeClasses](\n\t[class] [char](1) NOT NULL,\n\t[income_from] [money] NOT NULL,\n\t[income_to] [money] NOT NULL\n) \n\n\n\n  INSERT [dbo].[HighIncomeClasses]\n  SELECT *\n  from (values ('c'  ,10000,49999.99),('b',50000,99999.99),('a',100000,999999.99))t(class,income_from,income_to)\n\nEND"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "get_csv_set_clasess",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Create or Truncate Table HighIncomeCustomers",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Create Table HighIncomeClasses",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow1",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-08-27T08:15:05Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
